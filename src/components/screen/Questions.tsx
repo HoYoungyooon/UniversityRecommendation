@@ -11,8 +11,10 @@ type QuestionsProps = {
 const Questions = ({ questions, title, onSubmit }: QuestionsProps) => {
     const [selectedQuestion, setSelectedQuestion] = useState<string>('');
     return (
-        <section className='w-full flex flex-col gap-[15px] mt-[40px]'>
-            <h2 className='text-white'>{title}</h2>
+        <article className='w-full flex flex-col gap-[15px]'>
+            <div>
+                <p className='text-white'>{title}</p>
+            </div>
             <div className='w-full flex flex-col items-center justify-center gap-[10px] my-[10px]'>
                 {questions.map((question, index) => (
                     <SelectItem
@@ -30,7 +32,7 @@ const Questions = ({ questions, title, onSubmit }: QuestionsProps) => {
             </div>
 
             <Button label='다음' onClick={() => onSubmit(selectedQuestion)} />
-        </section>
+        </article>
     );
 };
 

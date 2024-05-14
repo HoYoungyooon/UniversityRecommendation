@@ -51,6 +51,7 @@ export default function Layout() {
     return (
         <main className='p-[20px]'>
             <RangeBar {...calRangeBarProps()} />
+
             <Funnel>
                 <Step name='Q1'>
                     <Questions
@@ -58,8 +59,7 @@ export default function Layout() {
                         questions={QUESTIONS.Q1}
                         onSubmit={value => {
                             handleAnswer(value, 'Q2');
-                        }}
-                    />
+                        }}></Questions>
                 </Step>
                 <Step name='Q2'>
                     <Questions

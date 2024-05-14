@@ -27,7 +27,17 @@ const useFunnel = (defaultStep: string) => {
             childStep => childStep.props.name === step
         );
 
-        return <>{targetStep}</>;
+        return (
+            <section className='mt-[40px]'>
+                {step === 'Q1' && (
+                    <p className='mb-[20px]'>
+                        몇 가지 정보를 알려주시면 지원할 수 있는 대학을
+                        추천해드려요.
+                    </p>
+                )}
+                {targetStep}
+            </section>
+        );
     };
 
     return { Funnel, Step, setStep, currentStep: step } as const;
