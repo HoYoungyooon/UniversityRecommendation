@@ -1,27 +1,115 @@
 'use client';
-import SelectItem from '@/components/common/SelectItem';
-import Button from '@/components/common/Button';
-import RangeBar from './RangeBar';
-import Questions from '../screen/Questions';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import RangeBar from '@/components/common/RangeBar';
+import Questions from '@/components/screen/Questions';
+import useFunnel from '@/hooks/useFunnel';
+import { QUESTIONS, TITLES } from '@/constant/question';
+
+type AnswerType = {
+    Q1: string;
+    Q2: string;
+    Q3: string;
+    Q4: string;
+    Q5: string;
+    Q6: string;
+};
+
+type AnswerKey = keyof AnswerType;
 
 export default function Layout() {
-    const [question, setQuestion] = useState<string>('Q1');
-    return (
-        <>
-            <div className='w-full py-5'>
-                <RangeBar width={50} />
-            </div>
+    const [answer, setAnswer] = useState<AnswerType>({
+        Q1: '',
+        Q2: '',
+        Q3: '',
+        Q4: '',
+        Q5: '',
+        Q6: '',
+    });
+    const { Funnel, Step, setStep, currentStep } = useFunnel('Q1');
 
-            <div className='px-[20px] mt-[10px]'>
-                <Questions
-                    title='Questions'
-                    selected={question}
-                    questions={['Q1', 'Q2', 'Q3']}
-                    onClick={value => setQuestion}
-                />
-                <Button label='다음' onClick={() => console.log('clicked')} />
-            </div>
-        </>
+    const handleAnswer = (value: string, step: string) => {
+        setAnswer({ ...answer, [step]: value });
+        setStep(step);
+    };
+
+    const handleClickRequest = (value: AnswerKey) => {
+        setAnswer({ ...answer, Q6: value });
+        alert('할거 정하셈');
+    };
+
+    const calRangeBarProps = useCallback(() => {
+        const index = Object.keys(QUESTIONS).indexOf(currentStep);
+        const maxStep = Object.keys(QUESTIONS).length;
+        const step = index + 1;
+        return {
+            width: (step / maxStep) * 100,
+            maxStep,
+            step,
+        };
+    }, [currentStep]);
+
+    return (
+        <main className='p-[20px]'>
+            <RangeBar {...calRangeBarProps()} />
+            <Funnel>
+                <Step name='Q1'>
+                    <Questions
+                        title={TITLES.Q1}
+                        questions={QUESTIONS.Q1}
+                        onSubmit={value => {
+                            handleAnswer(value, 'Q2');
+                        }}
+                    />
+                </Step>
+                <Step name='Q2'>
+                    <Questions
+                        title={TITLES.Q2}
+                        questions={QUESTIONS.Q2}
+                        onSubmit={value => {
+                            handleAnswer(value, 'Q3');
+                        }}
+                    />
+                </Step>
+                <Step name='Q3'>
+                    <Questions
+                        title={TITLES.Q3}
+                        questions={QUESTIONS.Q3}
+                        onSubmit={value => {
+                            handleAnswer(value, 'Q4');
+                        }}
+                    />
+                </Step>
+
+                <Step name='Q4'>
+                    <Questions
+                        title={TITLES.Q4}
+                        questions={QUESTIONS.Q4}
+                        onSubmit={value => {
+                            handleAnswer(value, 'Q5');
+                        }}
+                    />
+                </Step>
+
+                <Step name='Q5'>
+                    <Questions
+                        title={TITLES.Q5}
+                        questions={QUESTIONS.Q5}
+                        onSubmit={value => {
+                            handleAnswer(value, 'Q6');
+                        }}
+                    />
+                </Step>
+
+                <Step name='Q6'>
+                    <Questions
+                        title={TITLES.Q6}
+                        questions={QUESTIONS.Q6}
+                        onSubmit={value => {
+                            handleClickRequest(value as AnswerKey);
+                        }}
+                    />
+                </Step>
+            </Funnel>
+        </main>
     );
 }
