@@ -6,279 +6,145 @@ import AnswerBox from "@/components/screen/AnswerBox";
 import useFunnel from "@/hooks/useFunnel";
 import { QUESTIONS, TITLES } from "@/constant/question";
 import { fetchQuestion } from "@/service/fetch";
+import ResultBox from "@/components/screen/ResultBox";
 
 type AnswerType = {
-  q1: string[];
-  q2: string;
-  q3: string;
-  q4: string;
-  q5: string;
-  q6: string;
+    q1: string[];
+    q2: string;
+    q3: string;
+    q4: string;
+    q5: string;
+    // q6: string;
 };
 
 type AnswerKey = keyof AnswerType;
 
 export default function Layout() {
-  const [answer, setAnswer] = useState<AnswerType>({
-    q1: Array(6).fill(""),
-    q2: "",
-    q3: "",
-    q4: "",
-    q5: "",
-    q6: "",
-  });
-  const [isModifyQuestion, setIsModifyQuestion] = useState(Array(6).fill(true));
-  const { Funnel, Step, setStep, currentStep } = useFunnel("q1");
-  const [isShowQuestion, setIsShowQuestion] = useState(Array(6).fill(false));
-  const [modifyStep, setModifyStep] = useState("");
-  const [curStep, setCurStep] = useState("q1");
-  const [result, setResult] = useState([]);
-
-  useEffect(() => {}, []);
-
-  const handleAnswer = (
-    value: string | string[],
-    key: string,
-    step: string,
-  ) => {
-    console.log(value, key, currentStep);
-    setAnswer({ ...answer, [key]: value });
-    setStep(step);
-    // fetchq1();
-  };
-
-  const handleClickRequest = (value: AnswerKey) => {
-    setAnswer({ ...answer, q6: value });
-    fetchQuestion(answer);
-  };
-
-  const handleClickRequest2 = () => {
-    setAnswer({ ...answer });
-    fetchQuestion(answer).then((res) => {
-      console.log("res>>", res);
-      setResult(res);
+    const [answer, setAnswer] = useState<AnswerType>({
+        q1: Array(6).fill(""),
+        q2: "",
+        q3: "",
+        q4: "",
+        q5: "",
+        // q6: "",
     });
-  };
 
-  const calRangeBarProps = useCallback(() => {
-    const index = Object.keys(QUESTIONS).indexOf(currentStep);
-    const maxStep = Object.keys(QUESTIONS).length;
-    const step = index + 1;
-    return {
-      width: (step / maxStep) * 100,
-      maxStep,
-      step,
+    const { Funnel, Step, setStep, currentStep } = useFunnel("q1");
+    const [isShowQuestion, setIsShowQuestion] = useState(Array(6).fill(false));
+    const [questions, setQuestions] = useState([
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        // "q6",
+    ]);
+    const [curStep, setCurStep] = useState<AnswerKey>("q1"); // 현재 진행중인 질문
+    const [lastStep, setLastStep] = useState<AnswerKey>(); // 가장 최근 질문
+    const [result, setResult] = useState<string[]>([]);
+
+    useEffect(() => {}, []);
+
+    const handleAnswer = (
+        value: string | string[],
+        key: string,
+        step: string,
+    ) => {
+        setAnswer((prevAnswer) => ({ ...prevAnswer, [key]: value }));
+        setStep(step);
+        // fetchq1();
     };
-  }, [currentStep]);
 
-  return (
-    <main className="p-[20px]">
-      <RangeBar {...calRangeBarProps()} />
+    const handleClickRequest = (value: AnswerKey) => {
+        // setAnswer({ ...answer, q6: value });
+        setAnswer({ ...answer });
+        fetchQuestion(answer);
+    };
 
-      {curStep === "q1" || modifyStep === "q1" ? (
-        <Questions
-          title={TITLES.q1}
-          questions={QUESTIONS.q1}
-          isDuplicate={true}
-          onSubmit={(value) => {
-            handleAnswer(value, "q1", "q2");
-            isModifyQuestion[0] = false;
-            setIsModifyQuestion([...isModifyQuestion]);
-            setCurStep("q2");
-            isShowQuestion[0] = true;
-            setIsShowQuestion([...isShowQuestion]);
-          }}
-        ></Questions>
-      ) : isShowQuestion[0] ? (
-        <div className="flex flex-col items-end">
-          <AnswerBox answer={answer["q1"].join(", ")} />
-          <button
-            onClick={() => {
-              isModifyQuestion[0] = true;
-              setModifyStep("q1");
-              setIsModifyQuestion([...isModifyQuestion]);
-            }}
-          >
-            수정
-          </button>
-        </div>
-      ) : null}
-      {curStep === "q2" || modifyStep === "q2" ? (
-        <Questions
-          title={TITLES.q2}
-          questions={QUESTIONS.q2}
-          onSubmit={(value) => {
-            handleAnswer(value, "q2", "q3");
-            isModifyQuestion[1] = false;
-            setIsModifyQuestion([...isModifyQuestion]);
-            setCurStep("q3");
-            isShowQuestion[1] = true;
-            setIsShowQuestion([...isShowQuestion]);
-          }}
-        ></Questions>
-      ) : isShowQuestion[1] ? (
-        <div className="flex flex-col items-end">
-          <AnswerBox answer={answer["q2"]} />
-          <button
-            onClick={() => {
-              isModifyQuestion[1] = true;
-              setModifyStep("q2");
-              setIsModifyQuestion([...isModifyQuestion]);
-            }}
-          >
-            수정
-          </button>
-        </div>
-      ) : null}
-      {curStep === "q3" || modifyStep === "q3" ? (
-        <Questions
-          title={TITLES.q3}
-          questions={QUESTIONS.q3}
-          onSubmit={(value) => {
-            handleAnswer(value, "q3", "q4");
-            isModifyQuestion[2] = false;
-            isShowQuestion[2] = true;
-            setIsShowQuestion([...isShowQuestion]);
-            setIsModifyQuestion([...isModifyQuestion]);
-            setCurStep("q4");
-          }}
-        ></Questions>
-      ) : isShowQuestion[2] ? (
-        <div className="flex flex-col items-end">
-          <AnswerBox answer={answer["q3"]} />
-          <button
-            onClick={() => {
-              isModifyQuestion[2] = true;
-              setModifyStep("q3");
-              setIsModifyQuestion([...isModifyQuestion]);
-            }}
-          >
-            수정
-          </button>
-        </div>
-      ) : null}
+    const handleClickRequest2 = () => {
+        setAnswer((prevAnswer) => ({ ...prevAnswer }));
+        fetchQuestion(answer).then((res) => {
+            console.log("res>>", res);
+            setResult(res);
+        });
+    };
 
-      {curStep === "q4" || modifyStep === "q4" ? (
-        <Questions
-          title={TITLES.q4}
-          questions={QUESTIONS.q4}
-          onSubmit={(value) => {
-            handleAnswer(value, "q4", "q5");
-            isModifyQuestion[3] = false;
-            setIsModifyQuestion([...isModifyQuestion]);
-            setCurStep("q5");
-            isShowQuestion[3] = true;
-            setIsShowQuestion([...isShowQuestion]);
-          }}
-        ></Questions>
-      ) : isShowQuestion[3] ? (
-        <div className="flex flex-col items-end">
-          <AnswerBox answer={answer["q4"]} />
-          <button
-            onClick={() => {
-              isModifyQuestion[3] = true;
-              setModifyStep("q4");
-              setIsModifyQuestion([...isModifyQuestion]);
-            }}
-          >
-            수정
-          </button>
-        </div>
-      ) : null}
+    const calRangeBarProps = useCallback(() => {
+        const index = Object.keys(QUESTIONS).indexOf(currentStep);
+        const maxStep = Object.keys(QUESTIONS).length;
+        const step = index + 1;
+        return {
+            width: (step / maxStep) * 100,
+            maxStep,
+            step,
+        };
+    }, [currentStep]);
 
-      {curStep === "q5" || modifyStep === "q5" ? (
-        <Questions
-          title={TITLES.q5}
-          questions={QUESTIONS.q5}
-          onSubmit={(value) => {
-            handleAnswer(value, "q5", "q6");
-            isModifyQuestion[4] = false;
-            setIsModifyQuestion([...isModifyQuestion]);
-            setCurStep("q6");
-            isShowQuestion[4] = true;
-            setIsShowQuestion([...isShowQuestion]);
-            handleClickRequest2();
-          }}
-        ></Questions>
-      ) : isShowQuestion[4] ? (
-        <div className="flex flex-col items-end">
-          <AnswerBox answer={"예"} />
-          <button
-            onClick={() => {
-              isModifyQuestion[4] = true;
-              setModifyStep("q5");
-              setIsModifyQuestion([...isModifyQuestion]);
-              handleClickRequest2();
-            }}
-          >
-            수정
-          </button>
-        </div>
-      ) : null}
+    return (
+        <main className="p-[20px]">
+            <RangeBar {...calRangeBarProps()} />
 
-      {result.map((item, idx) => {
-        return <div key={idx}>{item}</div>;
-      })}
-      {/* <Funnel>
-        <Step name="q1">
-          <Questions
-            title={TITLES.q1}
-            questions={QUESTIONS.q1}
-            isDuplicate={true}
-            onSubmit={(value) => {
-              handleAnswer(value, "q2");
-            }}
-          ></Questions>
-        </Step>
-        <Step name="q2">
-          <Questions
-            title={TITLES.q2}
-            questions={QUESTIONS.q2}
-            onSubmit={(value) => {
-              handleAnswer(value, "q3");
-            }}
-          />
-        </Step>
-        <Step name="q3">
-          <Questions
-            title={TITLES.q3}
-            questions={QUESTIONS.q3}
-            onSubmit={(value) => {
-              handleAnswer(value, "q4");
-            }}
-          />
-        </Step>
+            {questions.map((question, idx) => {
+                return curStep === question ? (
+                    <Questions
+                        key={idx}
+                        title={TITLES[question as keyof typeof TITLES]} // Explicitly define the type of TITLES
+                        questions={QUESTIONS[question as keyof typeof TITLES]}
+                        isDuplicate={question === "q1" ? true : false}
+                        onSubmit={(value) => {
+                            handleAnswer(
+                                value,
+                                question,
+                                `q${
+                                    parseInt(curStep[1]) + 1
+                                }` as keyof AnswerType,
+                            );
 
-        <Step name="q4">
-          <Questions
-            title={TITLES.q4}
-            questions={QUESTIONS.q4}
-            onSubmit={(value) => {
-              handleAnswer(value, "q6");
-            }}
-          />
-        </Step>
+                            if (lastStep) {
+                                setCurStep(lastStep);
+                                setLastStep(undefined);
+                            } else
+                                setCurStep(
+                                    `q${parseInt(curStep[1]) + 1}` as AnswerKey,
+                                );
 
-        <Step name="q5">
-          <Questions
-            title={TITLES.q5}
-            questions={QUESTIONS.q5}
-            onSubmit={(value) => {
-              handleAnswer(value, "q6");
-            }}
-          />
-        </Step>
+                            if (curStep === "q5") {
+                                handleClickRequest2();
+                            }
+                        }}
+                    ></Questions>
+                ) : answer[question as keyof AnswerType] ? (
+                    <div className="flex flex-col items-end" key={idx}>
+                        <AnswerBox
+                            answer={answer[question as keyof typeof TITLES]}
+                        />
+                        <button
+                            onClick={() => {
+                                setCurStep(question as keyof AnswerType);
+                                setLastStep(curStep as keyof AnswerType);
+                            }}
+                        >
+                            수정
+                        </button>
+                    </div>
+                ) : null;
+            })}
 
-        <Step name="q6">
-          <Questions
-            title={TITLES.q6}
-            questions={QUESTIONS.q6}
-            onSubmit={(value) => {
-              handleClickRequest(value as AnswerKey);
-            }}
-          />
-        </Step>
-      </Funnel> */}
-    </main>
-  );
+            {result.length > 0 ? <ResultBox result={result}></ResultBox> : null}
+
+            {/* <ResultBox
+                result={[
+                    "대학교 A 학과 B 전공_2024-05-20",
+                    "대학교 C 학과 D 전공_2024-05-21",
+                    "대학교 E 학과 F 전공_2024-05-22",
+                    "대학교 G 학과 H 전공_2024-05-22",
+                    "대학교 I 학과 J 전공_2024-05-22",
+                    "대학교 K 학과 L 전공_2024-05-23",
+                    "대학교 M 학과 N 전공_2024-05-23",
+                    "대학교 O 학과 P 전공_2024-05-24",
+                    "대학교 Q 학과 R 전공_2024-05-24",
+                ]}
+            ></ResultBox> */}
+        </main>
+    );
 }
