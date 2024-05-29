@@ -7,6 +7,7 @@ import useFunnel from "@/hooks/useFunnel";
 import { QUESTIONS, TITLES } from "@/constant/question";
 import { fetchQuestion } from "@/service/fetch";
 import ResultBox from "@/components/screen/ResultBox";
+import Banner from "./banner";
 
 type AnswerType = {
     q1: string[];
@@ -82,7 +83,13 @@ export default function Layout() {
 
     return (
         <main className="p-[20px]">
-            <RangeBar {...calRangeBarProps()} />
+            <Banner></Banner>
+            <RangeBar {...calRangeBarProps()}/>
+
+            {curStep === 'q1' ?  <p className='mb-[20px] font-bold'>
+                        몇 가지 정보를 알려주시면 <br></br>지원할 수 있는 대학을
+                        추천해드립니다.
+                    </p> : null}
 
             {questions.map((question, idx) => {
                 return curStep === question ? (

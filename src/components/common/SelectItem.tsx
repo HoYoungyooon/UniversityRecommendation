@@ -13,7 +13,7 @@ const SelectItem = ({ value, label, isSelected, onClick }: SelectItemProps) => {
             onClick={() => onClick(value)}
             className={clsx(
                 'w-full h-[40px] flex items-center justify-start border  border-line1 rounded-[10px] px-[20px]',
-                isSelected ? 'bg-slate-600' : ''
+                isSelected ? 'bg-violet-400 bg-opacity-30 border-purple-700' : ''
             )}>
             <span>{label}</span>
         </button>

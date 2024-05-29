@@ -14,7 +14,7 @@
 //   }
 // };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const fetchQuestion = async (
   data: Record<string, string | string[]>,
