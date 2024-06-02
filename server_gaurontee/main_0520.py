@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 from typing import List
 from fastapi import FastAPI, Query
+from pydantic import BaseModel
 import uvicorn
 
 # 엑셀 파일에서 데이터 불러오기
+# df = pd.read_excel(r"/Users/yun-yunhoyeong/Desktop/UniversityRecommendation/server_gaurontee/list_0520.xlsx")
 df = pd.read_excel(r"/Users/joodongseong/Desktop/UniversityRecommendation/server_gaurontee/list_0520.xlsx")
+
+
+
 
 # 날짜 형식이 "YYYY.MM.DD"인 문자열을 datetime 객체로 변환
 df['date'] = pd.to_datetime(df['date'], format='%Y.%m.%d')
@@ -76,20 +82,19 @@ async def handle_request(
         filtering = filtering[filtering['index'] == user_style]
 
     # 데이터 포맷팅
-    response = {}
+    response = []
     for _, row in filtering.iterrows():
         university_data = {
+            "university": row['university'],
             "division": row['division'],
             "major": row['major'],
             "date": row['date'].strftime('%Y-%m-%d'),
             "competition_rate": row['competition_rate'],
             "subject": row['subject'],
             "rating": row['rating']
-        }
-        university_name = row['university']
-        if university_name not in response:
-            response[university_name] = []
-        response[university_name].append(university_data)
+        }        
+        
+        response.append(university_data)
 
     return response
 

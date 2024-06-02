@@ -5,7 +5,7 @@ import Questions from "@/components/screen/Questions";
 import AnswerBox from "@/components/screen/AnswerBox";
 import useFunnel from "@/hooks/useFunnel";
 import { QUESTIONS, TITLES } from "@/constant/question";
-import { fetchQuestion } from "@/service/fetch";
+import { QuestionFetchProps, fetchQuestion } from "@/service/fetch";
 import ResultBox from "@/components/screen/ResultBox";
 import Banner from "./banner";
 
@@ -42,10 +42,8 @@ export default function Layout() {
     ]);
     const [curStep, setCurStep] = useState<AnswerKey>("q1"); // 현재 진행중인 질문
     const [lastStep, setLastStep] = useState<AnswerKey>(); // 가장 최근 질문
-    const [result, setResult] = useState<string[]>([]);
+    const [result, setResult] = useState<QuestionFetchProps | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {}, []);
 
     const handleAnswer = (
         value: string | string[],
@@ -63,15 +61,16 @@ export default function Layout() {
         fetchQuestion(answer);
     };
 
-    const handleClickRequest2 = () => {
+    const handleClickRequest2 = async () => {
         setIsLoading(true);
-        fetchQuestion(answer).then((res) => {
-            setTimeout(() => {
-                console.log("res>>", res);
-                setResult(res);
-                setIsLoading(false);
-            }, 2000);
-        });
+        try {
+            const res = await fetchQuestion(answer);
+            console.log("res>>", res);
+            setResult(res);
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
     };
 
     const calRangeBarProps = useCallback(() => {
@@ -88,13 +87,13 @@ export default function Layout() {
     return (
         <main className="p-[20px]">
             {/* result가 없을 때만 Banner, RangeBar, 그리고 질문들을 렌더링 */}
-            {result.length === 0 && !isLoading && (
+            {!result && !isLoading && (
                 <>
                     <Banner />
                     <RangeBar {...calRangeBarProps()} />
 
-                    {curStep === 'q1' && (
-                        <p className='mb-[20px] font-bold'>
+                    {curStep === "q1" && (
+                        <p className="mb-[20px] font-bold">
                             몇 가지 정보를 알려주시면 <br />
                             지원할 수 있는 대학을 추천해드립니다.
                         </p>
@@ -105,20 +104,28 @@ export default function Layout() {
                             <Questions
                                 key={idx}
                                 title={TITLES[question as keyof typeof TITLES]} // Explicitly define the type of TITLES
-                                questions={QUESTIONS[question as keyof typeof TITLES]}
+                                questions={
+                                    QUESTIONS[question as keyof typeof TITLES]
+                                }
                                 isDuplicate={question === "q1"}
                                 onSubmit={(value) => {
                                     handleAnswer(
                                         value,
                                         question,
-                                        `q${parseInt(curStep[1]) + 1}` as keyof AnswerType,
+                                        `q${
+                                            parseInt(curStep[1]) + 1
+                                        }` as keyof AnswerType,
                                     );
 
                                     if (lastStep) {
                                         setCurStep(lastStep);
                                         setLastStep(undefined);
                                     } else {
-                                        setCurStep(`q${parseInt(curStep[1]) + 1}` as AnswerKey);
+                                        setCurStep(
+                                            `q${
+                                                parseInt(curStep[1]) + 1
+                                            }` as AnswerKey,
+                                        );
                                     }
 
                                     if (curStep === "q5") {
@@ -129,12 +136,18 @@ export default function Layout() {
                         ) : answer[question as keyof AnswerType] ? (
                             <div className="flex flex-col items-end" key={idx}>
                                 <AnswerBox
-                                    answer={answer[question as keyof typeof TITLES]}
+                                    answer={
+                                        answer[question as keyof typeof TITLES]
+                                    }
                                 />
                                 <button
                                     onClick={() => {
-                                        setCurStep(question as keyof AnswerType);
-                                        setLastStep(curStep as keyof AnswerType);
+                                        setCurStep(
+                                            question as keyof AnswerType,
+                                        );
+                                        setLastStep(
+                                            curStep as keyof AnswerType,
+                                        );
                                     }}
                                 >
                                     수정
@@ -158,7 +171,7 @@ export default function Layout() {
             )}
 
             {/* result가 있을 때만 ResultBox를 렌더링 */}
-            {result.length > 0 && !isLoading && <ResultBox result={result} />}
+            {result?.length && !isLoading && <ResultBox result={result} />}
         </main>
     );
 }
