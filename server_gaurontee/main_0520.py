@@ -1,11 +1,20 @@
 import pandas as pd
 from typing import List
 from fastapi import FastAPI, Query
-from pydantic import BaseModel
 import uvicorn
 
 # 엑셀 파일에서 데이터 불러오기
 df = pd.read_excel(r"/Users/joodongseong/Desktop/UniversityRecommendation/server_gaurontee/list_0520.xlsx")
+
+# 날짜 형식이 "YYYY.MM.DD"인 문자열을 datetime 객체로 변환
+df['date'] = pd.to_datetime(df['date'], format='%Y.%m.%d')
+
+# NaN 값 처리: NaN 값을 적절한 기본값으로 채웁니다.
+df = df.fillna({
+    'competition_rate': 0,
+    'subject': 0,
+    'rating': 0
+})
 
 app = FastAPI()
 
@@ -29,76 +38,60 @@ async def handle_request(
     # 필터링 1 
     user_count = len(api['q1'])
     filtering = df[df['subject'] >= 0]
-    '''
-    filtering = df
-    list_element = api['q1']
-    if "," in api['q1']:
-        list_element = api['q1'].split(",")
-    
-    
-    if len(list_element) > 0:
-        filtering = df.loc(df["subject"] <= len(list_element))
-    '''
     
     # 필터링 2
-
-
-    # filtering = df[df['subject'] <= len(list_element)]
-    # filtering = df[df['subject'] <= user_count]
-
-
     math_user = api['q2']
     if math_user == '예':
         math_user = 1
-        filtering2 = filtering[filtering['math_essay'] == math_user]
+        filtering = filtering[filtering['math_essay'] == math_user]
     elif math_user == '아니오':
         math_user = 0
-        filtering2 = filtering[filtering['math_essay'] == math_user]
-    else:
-        filtering2 = filtering
+        filtering = filtering[filtering['math_essay'] == math_user]
 
     # 필터링 3
     user_record = api['q3']
     if user_record == '예':
         user_record = 1
-        filtering3 = filtering2[filtering2['school_record'] == user_record]
+        filtering = filtering[filtering['school_record'] == user_record]
     elif user_record == '아니오':
         user_record = 0
-        filtering3 = filtering2[filtering2['school_record'] == user_record]
-    else:
-        filtering3 = filtering2
+        filtering = filtering[filtering['school_record'] == user_record]
 
     # 필터링 4
     user_attendence = api['q4']
     if user_attendence == '예':
         user_attendence = 1
-        filtering4 = filtering3[filtering3['attendence'] == user_attendence]
+        filtering = filtering[filtering['attendence'] == user_attendence]
     elif user_attendence == '아니오':
         user_attendence = 0
-        filtering4 = filtering3[filtering3['attendence'] == user_attendence]
-    else:
-        filtering4 = filtering3
+        filtering = filtering[filtering['attendence'] == user_attendence]
 
     # 필터링 5
     user_style = api['q5']
     if user_style == '예':
         user_style = 0
-        filtering5 = filtering4[filtering4['index'] == user_style]
+        filtering = filtering[filtering['index'] == user_style]
     elif user_style == '아니오':
         user_style = 0
-        filtering5 = filtering4[filtering4['index'] == user_style]
-    else:
-        filtering5 = filtering4
+        filtering = filtering[filtering['index'] == user_style]
 
-    before_df = filtering5[['university', 'division', 'major', 'date']]
-    before_df['name'] = before_df['university'] + ' ' + before_df['division'] + ' ' + before_df['major']
-    before_df = before_df.drop(columns=['university', 'division', 'major'])
-    before_df['date'] = before_df['date'].dt.strftime('%Y-%m-%d')
+    # 데이터 포맷팅
+    response = {}
+    for _, row in filtering.iterrows():
+        university_data = {
+            "division": row['division'],
+            "major": row['major'],
+            "date": row['date'].strftime('%Y-%m-%d'),
+            "competition_rate": row['competition_rate'],
+            "subject": row['subject'],
+            "rating": row['rating']
+        }
+        university_name = row['university']
+        if university_name not in response:
+            response[university_name] = []
+        response[university_name].append(university_data)
 
-    to_client = before_df.apply(lambda row: f"{row['name']}_{row['date']}", axis=1).tolist()
-
-    return to_client
+    return response
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
